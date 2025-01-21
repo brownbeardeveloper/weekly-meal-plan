@@ -1,0 +1,52 @@
+version: "3.8"
+
+services:
+  # FastAPI application (API service)
+  api:
+    build:
+      context: ./api
+    container_name: api_container
+    ports:
+      - "8000:8000"  # Expose FastAPI on port 8000
+    environment:
+      - DATABASE_URL=postgresql://devuser:devpass@db:5432/devopsdb
+    depends_on:
+      - db
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload  # Run FastAPI app on all interfaces
+
+  # Website (static files)
+  ui:
+    build:
+      context: ./ui
+    container_name: ui_container
+    ports:
+      - "80:80"  # Expose the ui on port 80 (for external access)
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:1.26.2  # Stable Nginx version
+    container_name: nginx_container
+    ports:
+      - "8080:80"  # Expose Nginx on port 8080 (host side)
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro  # Mount Nginx configuration file
+    depends_on:
+      - api
+      - ui
+
+  # PostgreSQL database
+  db:
+    image: postgres:14
+    container_name: database_container
+    environment:
+      POSTGRES_USER: devuser
+      POSTGRES_PASSWORD: devpass
+      POSTGRES_DB: devopsdb
+    ports:
+      - "5432:5432"  # Expose PostgreSQL on port 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Store database data in a volume
+
+# Volumes for persistent data
+volumes:
+  postgres_data:
