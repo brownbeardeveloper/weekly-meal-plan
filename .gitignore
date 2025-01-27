@@ -1,2 +1,11 @@
 *venv
 nginx/certs/*
+nextdocker/node_modules
+nextdocker/.next/
+*.log
+
+# macOS system files
+.DS_Store
+
+# Windows system files
+Thumbs.db
